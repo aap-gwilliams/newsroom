@@ -20,7 +20,7 @@ class MonitoringResource(newsroom.Resource):
             'type': 'string'
         },
         'company': {
-            'type': 'objectid'
+            'type': 'ObjectId'
         },
         'query': {
             'type': 'string'
@@ -33,7 +33,7 @@ class MonitoringResource(newsroom.Resource):
         },
         'users': {
             'type': 'list',
-            'mapping': {'type': 'objectid'}
+            'mapping': {'type': 'ObjectId'}
         },
         'schedule': {
             'type': 'dict',

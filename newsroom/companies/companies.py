@@ -42,7 +42,7 @@ class CompaniesResource(newsroom.Resource):
             'required': False,
         },
         'sections': {
-            'type': 'objectid',
+            'type': 'object',
         },
         'archive_access': {
             'type': 'boolean',
@@ -59,7 +59,7 @@ class CompaniesResource(newsroom.Resource):
             'type': 'string'
         },
         'monitoring_administrator': {
-            'type': 'objectid'
+            'type': 'ObjectId'
         },
         'allowed_ip_list': {
             'type': 'list',
