@@ -2,5 +2,5 @@ PyRTF3
 xhtml2pdf
 werkzeug>=0.9.4,<=0.11.15
 -e .
-git+git://github.com/superdesk/superdesk-planning.git@1.10#egg=superdesk-planning
+git+git://github.com/superdesk/superdesk-planning.git@support/1.33#egg=superdesk-planning
 git+git://github.com/superdesk/superdesk-core.git@v1.33.7#egg=superdesk-core
