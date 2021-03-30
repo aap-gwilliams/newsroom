@@ -17,7 +17,8 @@ install_requires = [
     'superdesk-planning<1.34',
     'PyRTF3>=0.47.5',
     'xhtml2pdf>=0.2.4',
-    'werkzeug>=0.9.4,<=0.11.15'
+    'werkzeug>=0.9.4,<=0.11.15',
+    'urllib3<1.26'
 ]
 
 setup(
