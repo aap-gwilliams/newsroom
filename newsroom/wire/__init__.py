@@ -1,7 +1,7 @@
 import superdesk
 
 from flask import Blueprint, url_for
-from flask_babel import lazy_gettext
+from flask_babel import gettext
 from newsroom.wire.search import WireSearchResource, WireSearchService
 from . import utils
 from superdesk.metadata.item import not_analyzed
@@ -41,7 +41,7 @@ def init_app(app):
 
     app.section('wire', 'Wire', 'wire')
     app.dashboard('newsroom',
-                  lazy_gettext('Newsroom'),
+                  gettext('Newsroom'),
                   [
                       '6-text-only',
                       '4-picture-text',
@@ -58,16 +58,16 @@ def init_app(app):
     app.sidenav('Home', 'wire.index', 'home')
     app.sidenav('Wire', 'wire.wire', 'text', section='wire')
 
-    app.sidenav(lazy_gettext('Saved/Watched Items'), 'wire.bookmarks', 'bookmark',
+    app.sidenav(gettext('Saved/Watched Items'), 'wire.bookmarks', 'bookmark',
                 group=1, blueprint='wire', badge='saved-items-count')
 
     from .formatters import TextFormatter, NITFFormatter, NewsMLG2Formatter, JsonFormatter, PictureFormatter
-    app.download_formatter('text', TextFormatter(), lazy_gettext('Plain Text'), ['wire', 'agenda'], ['text'])
+    app.download_formatter('text', TextFormatter(), gettext('Plain Text'), ['wire', 'agenda'], ['text'])
     app.download_formatter('nitf', NITFFormatter(), 'NITF', ['wire'], ['text'])
     app.download_formatter('newsmlg2', NewsMLG2Formatter(), 'NewsMLG2', ['wire'], ['text'])
     app.download_formatter('json', JsonFormatter(), 'Json', ['agenda'], ['text'])
     if app.config.get('ALLOW_PICTURE_DOWNLOAD', True):
-        app.download_formatter('picture', PictureFormatter(), lazy_gettext('Story Image'), ['wire'], ['picture'])
+        app.download_formatter('picture', PictureFormatter(), gettext('Story Image'), ['wire'], ['picture'])
 
     app.add_template_global(utils.get_picture, 'get_picture')
     app.add_template_global(utils.get_caption, 'get_caption')
@@ -75,18 +75,18 @@ def init_app(app):
 
     app.general_setting(
         'news_only_filter',
-        lazy_gettext('News only filter'),
+        gettext('News only filter'),
         weight=200,
-        description=lazy_gettext("This query defines what is NOT considered 'news' content. It is used by the News only switch to filter the view. When switched on, stories matching this filter will not be displayed.")  # noqa
+        description=gettext("This query defines what is NOT considered 'news' content. It is used by the News only switch to filter the view. When switched on, stories matching this filter will not be displayed.")  # noqa
     )
 
     app.general_setting(
         'wire_time_limit_days',
-        lazy_gettext('Time limit for Wire products (in days)'),
+        gettext('Time limit for Wire products (in days)'),
         type='number',
         min=0,
         weight=300,
-        description=lazy_gettext("You can create an additional filter on top of the product definition. The time limit can be enabled for each company in the Permissions."),  # noqa
+        description=gettext("You can create an additional filter on top of the product definition. The time limit can be enabled for each company in the Permissions."),  # noqa
         default=app.config.get('WIRE_TIME_LIMIT_DAYS', 0),
     )
 
@@ -101,22 +101,22 @@ def init_app(app):
     app.config.setdefault('WIRE_GROUPS', [
         {
             'field': 'service',
-            'label': lazy_gettext('Category'),
+            'label': gettext('Category'),
         },
         {
             'field': 'subject',
-            'label': lazy_gettext('Subject'),
+            'label': gettext('Subject'),
         },
         {
             'field': 'genre',
-            'label': lazy_gettext('Content Type'),
+            'label': gettext('Content Type'),
         },
         {
             'field': 'urgency',
-            'label': lazy_gettext('News Value'),
+            'label': gettext('News Value'),
         },
         {
             'field': 'place',
-            'label': lazy_gettext('Place'),
+            'label': gettext('Place'),
         },
     ])
