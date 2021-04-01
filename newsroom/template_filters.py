@@ -3,6 +3,7 @@ import arrow
 import flask
 import hashlib
 
+from superdesk.json_utils import SuperdeskJSONEncoder
 from flask import current_app as app
 from bson import json_util as bson_json_util
 from eve.utils import str_to_date
@@ -16,7 +17,7 @@ from newsroom.auth import get_user
 def to_json(value):
     """Jinja filter to address the encoding of special values to json"""
 
-    return bson_json_util.dumps(value)
+    return SuperdeskJSONEncoder().dumps(value)
 
 
 def parse_date(datetime):
