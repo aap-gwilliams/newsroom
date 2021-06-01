@@ -220,7 +220,7 @@ def export_csv(args, results):
         for company in query_resource('companies')
     }
 
-    rows = [[
+    headers = [
         gettext('Published'),
         gettext('Headline'),
         gettext('Take Key'),
@@ -229,80 +229,85 @@ def export_csv(args, results):
         gettext('Subject'),
         gettext('Companies'),
         gettext('Actions'),
-    ]]
+    ]
 
     actions = args.get('action') or ['download', 'copy', 'share', 'print', 'open', 'preview', 'clipboard', 'api']
 
     if 'download' in actions:
-        rows[0].append(gettext('Download'))
+        headers.append(gettext('Download'))
 
     if 'copy' in actions:
-        rows[0].append(gettext('Copy'))
+        headers.append(gettext('Copy'))
 
     if 'share' in actions:
-        rows[0].append(gettext('Share'))
+        headers.append(gettext('Share'))
 
     if 'print' in actions:
-        rows[0].append(gettext('Print'))
+        headers.append(gettext('Print'))
 
     if 'open' in actions:
-        rows[0].append(gettext('Open'))
+        headers.append(gettext('Open'))
 
     if 'preview' in actions:
-        rows[0].append(gettext('Preview'))
+        headers.append(gettext('Preview'))
 
     if 'clipboard' in actions:
-        rows[0].append(gettext('Clipboard'))
+        headers.append(gettext('Clipboard'))
 
     if 'api' in actions:
-        rows[0].append(gettext('API retrieval'))
+        headers.append(gettext('API retrieval'))
+
+    response = {
+        'headers': headers,
+        'results': []
+    }
 
     for item in results:
         aggs = item.get('aggs') or {}
 
-        row = [
-            utc_to_local('Australia/Sydney', item.get('versioncreated')).strftime('%H:%M'),
-            item.get('headline'),
-            item.get('anpa_take_key') or '',
-            '\r\n'.join(sorted([place.get('name') or '' for place in item.get('place') or []])),
-            '\r\n'.join(sorted([service.get('name') or '' for service in item.get('service') or []])),
-            '\r\n'.join(sorted([subject.get('name') or '' for subject in item.get('subject') or []])),
-            '\r\n'.join(
+        row = {
+            'Published': utc_to_local('Australia/Sydney', item.get('versioncreated')).strftime('%H:%M'),
+            'Headline': item.get('headline'),
+            'Take Key': item.get('anpa_take_key') or '',
+            'Place': '\r\n'.join(sorted([place.get('name') or '' for place in item.get('place') or []])),
+            'Category': '\r\n'.join(sorted([service.get('name') or '' for service in item.get('service') or []])),
+            'Subject': '\r\n'.join(sorted([subject.get('name') or '' for subject in item.get('subject') or []])),
+            'Companies': '\r\n'.join(
                 sorted([
                     (companies.get(company_id) or {}).get('name') or company_id
                     for company_id in aggs.get('companies') or []
                 ])
             ),
-            aggs.get('total') or 0,
-        ]
+            'Actions': aggs.get('total') or 0,
+        }
 
         if 'download' in actions:
-            row.append((aggs.get('actions') or {}).get('download') or 0)
+            row['Download'] = aggs.get('actions', {}).get('download') or 0
 
         if 'copy' in actions:
-            row.append((aggs.get('actions') or {}).get('copy') or 0)
+            row['Copy'] = aggs.get('actions', {}).get('copy') or 0
 
         if 'share' in actions:
-            row.append((aggs.get('actions') or {}).get('share') or 0)
+            row['Share'] = aggs.get('actions', {}).get('share') or 0
 
         if 'print' in actions:
-            row.append((aggs.get('actions') or {}).get('print') or 0)
+            row['Print'] = aggs.get('actions', {}).get('print') or 0
 
         if 'open' in actions:
-            row.append((aggs.get('actions') or {}).get('open') or 0)
+            row['Open'] = aggs.get('actions', {}).get('open') or 0
 
         if 'preview' in actions:
-            row.append((aggs.get('actions') or {}).get('preview') or 0)
+            row['Preview'] = aggs.get('actions', {}).get('preview') or 0
 
         if 'clipboard' in actions:
-            row.append((aggs.get('actions') or {}).get('clipboard') or 0)
+            row['Clipboard'] = aggs.get('actions', {}).get('clipboard') or 0
 
         if 'api' in actions:
-            row.append((aggs.get('actions') or {}).get('api') or 0)
+            row['API retrieval'] = aggs.get('actions', {}).get('api') or 0
 
-        rows.append(row)
+        response['results'].append(row)
 
-    return rows
+    return response
 
 
 def get_content_activity_report():

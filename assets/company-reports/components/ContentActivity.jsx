@@ -281,12 +281,12 @@ class ContentActivity extends React.Component {
                         );
                     })}
 
-                    <button
+                    {/*<button
                         key='content_activity_export'
                         className="btn btn-outline-secondary ml-auto mr-3"
                         type="button"
                         onClick={this.exportToCSV}
-                    >{gettext('Export to CSV')}</button>
+                    >{gettext('Export to CSV')}</button>*/}
                 </div>
                 <ReportsTable
                     key='report_table'

@@ -11,6 +11,8 @@ import {
     ADD_RESULTS,
     SET_IS_LOADING,
     GET_PRODUCTS,
+    GET_MONITORING,
+    GET_USERS,
 } from './actions';
 
 const initialState = {
@@ -22,6 +24,8 @@ const initialState = {
     companies: [],
     sections: [],
     products: [],
+    monitoring: [],
+    users: [],
     reportParams: {
         date_from: Date.now(),
         date_to: Date.now(),
@@ -30,6 +34,8 @@ const initialState = {
         action: null,
         section: null,
         product: null,
+        user: null,
+        showQueries: false,
     }
 };
 
@@ -44,6 +50,8 @@ export default function companyReportReducer(state = initialState, action) {
             sections: action.data.sections,
             apiEnabled: action.data.api_enabled || false,
             products: action.data.products,
+            monitoring: action.data.monitoring,
+            users: action.data.users,
         };
 
     case QUERY_REPORT: {
@@ -97,7 +105,13 @@ export default function companyReportReducer(state = initialState, action) {
         };
 
     case GET_PRODUCTS:
-        return {...state, products: action.data};        
+        return {...state, products: action.data};
+
+    case GET_MONITORING:
+        return {...state, monitoring: action.data};
+
+    case GET_USERS:
+        return {...state, users: action.data};
 
     case 'RECEIVE_REPORT_AGGREGATIONS':
         return {
