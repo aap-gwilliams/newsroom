@@ -91,7 +91,8 @@ class ProductCompanies extends React.Component {
 
     getProductSectionName(productType) {
         const { sections } = this.props;
-        return sections.find(s => s._id === productType).name;
+        let section = sections.find(s => s._id === productType);
+        return section ? section.name : productType;
     }
 
     render() {

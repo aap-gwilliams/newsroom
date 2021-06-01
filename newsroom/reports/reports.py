@@ -66,7 +66,7 @@ def get_products(args):
 
 
 def get_section_name(section):
-    return next((sec for sec in newsroom_app.sections if sec.get('_id') == section), {}).get('name')
+    return next((sec for sec in newsroom_app.sections if sec.get('_id') == section), {}).get('name') or section
 
 
 def get_user_names(users):

@@ -84,7 +84,8 @@ class CompanyProducts extends React.Component {
         const { sections, reportParams } = this.props;
         const productsByGroup = groupBy(products, (p) => p.product_type);
         const getProductSectionName = (productType) => {
-            return sections.find(s => s._id === productType).name;
+            let section = sections.find(s => s._id === productType);
+            return section ? section.name : productType;
         };
 
         return (<div className="m-2">
