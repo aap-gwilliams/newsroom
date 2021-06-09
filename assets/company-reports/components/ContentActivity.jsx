@@ -83,10 +83,6 @@ class ContentActivity extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.props.results !== nextProps.results) {
-            this.updateResults(nextProps);
-        }
-
         if (this.props.aggregations !== nextProps.aggregations) {
             this.updateAggregations(nextProps);
         }
@@ -184,7 +180,7 @@ class ContentActivity extends React.Component {
                 }
             })
         );
-        this.setState({results});
+        return results;
     }
 
     onDateChange(value) {
@@ -206,7 +202,7 @@ class ContentActivity extends React.Component {
     }
 
     renderList() {
-        const {results} = this.state;
+        const results = this.updateResults(this.props);
         const actions = this.getFilteredActions();
 
         if (get(results, 'length', 0) > 0) {
