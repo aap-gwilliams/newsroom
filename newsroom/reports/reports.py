@@ -3,11 +3,8 @@ from collections import defaultdict
 import superdesk
 from bson import ObjectId
 from flask_babel import gettext
-from flask import request, send_file, current_app as newsroom_app, json
-import io
-import csv
+from flask import request, current_app as newsroom_app, json
 from superdesk.utc import utcnow
-from werkzeug.utils import secure_filename
 from copy import deepcopy
 from newsroom.agenda.agenda import get_date_filters
 from flask import abort

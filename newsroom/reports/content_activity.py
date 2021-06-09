@@ -1,11 +1,10 @@
 from copy import deepcopy
 
-from flask import abort, request
+from flask import request  # current_app as app
 from flask_babel import gettext
 
 from superdesk import get_resource_service
-from superdesk.utc import utc_to_local
-
+from superdesk.utc import utc_to_local  # datetime, pytz
 from newsroom.wire.search import items_query
 from newsroom.agenda.agenda import get_date_filters
 from newsroom.utils import query_resource
@@ -20,9 +19,6 @@ def get_items(args):
     For performance reasons, returns an iterator that yields an array of CHUNK_SIZE
     So that aggregations can be queried while the next iteration is retrieved
     """
-
-    if not args.get('section'):
-        abort(400, gettext('Must provide a section for this report'))
 
     source = {
         'query': items_query(True),
@@ -40,6 +36,10 @@ def get_items(args):
             }
         })
 
+    #if not args.get('date_from'):
+    #    current_date = datetime.datetime.now(pytz.timezone(app.config['DEFAULT_TIMEZONE']))
+    #    args['date_from'] = current_date.strftime('%Y-%m-%d')
+    #    args['timezone_offset'] = int(current_date.utcoffset().total_seconds() / 60 * -1)
     args['date_to'] = args['date_from']
     date_range = get_date_filters(args)
     if date_range.get('gt') or date_range.get('lt'):
@@ -49,11 +49,14 @@ def get_items(args):
         source['query']['bool']['must'].append(must_terms)
 
     # Apply the section filters
-    section = args['section']
-    get_resource_service('section_filters').apply_section_filter(
-        source['query'],
-        section
-    )
+    if not args.get('section'):
+        section = 'wire'
+    else:
+        section = args['section']
+        get_resource_service('section_filters').apply_section_filter(
+            source['query'],
+            section
+        )
 
     while True:
         results = get_resource_service('{}_search'.format(section)).search(source)
@@ -70,13 +73,10 @@ def get_items(args):
 def get_aggregations(args, ids):
     """Get action and company aggregations for the items provided"""
 
-    if not args.get('section'):
-        abort(400, gettext('Must provide a section for this report'))
+    must_terms = [{'terms': {'item': ids}}]
 
-    must_terms = [
-        {'terms': {'item': ids}},
-        {'term': {'section': args['section']}}
-    ]
+    if args.get('section'):
+        must_terms.append({'term': {'section': args['section']}})
 
     if args.get('company'):
         must_terms.append({'term': {'company': args['company']}})
@@ -167,11 +167,14 @@ def get_facets(args):
         })
 
         # Apply the section filters
-        section = args['section']
-        get_resource_service('section_filters').apply_section_filter(
-            source['query'],
-            section
-        )
+        if not args.get('section'):
+            section = 'wire'
+        else:
+            section = args['section']
+            get_resource_service('section_filters').apply_section_filter(
+                source['query'],
+                section
+            )
 
         results = get_resource_service('{}_search'.format(section)).search(source)
 
@@ -182,7 +185,9 @@ def get_facets(args):
     def get_companies():
         """Get the list of companies from the action history"""
 
-        must_terms = [{'term': {'section': args['section']}}]
+        must_terms = []
+        if args.get('section'):
+            must_terms.append({'term': {'section': args['section']}})
         if date_range.get('gt') or date_range.get('lt'):
             must_terms.append({'range': {'_created': date_range}})
 
@@ -320,9 +325,6 @@ def get_content_activity_report():
 
     if args.get('action'):
         args['action'] = args['action'].split(',')
-
-    if not args.get('section'):
-        args['section'] = 'wire'
 
     if args.get('aggregations'):
         # This request is for populating the dropdown filters

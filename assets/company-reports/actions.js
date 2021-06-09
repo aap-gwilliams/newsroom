@@ -224,13 +224,9 @@ export function printReport() {
     return function (dispatch, getState) {
         const state = getState();
         const activeReport = state.activeReport;
-
-        if (activeReport === REPORTS_NAMES.SUBSCRIBER_ACTIVITY) {
-            const queryString = getReportQueryString(state, false, false, notify);
-            window.open(`/reports/print/${activeReport}?${queryString}`, '_blank');
-        } else {
-            window.open(`/reports/print/${activeReport}`, '_blank');
-        }
+        const queryString = getReportQueryString(state, false, false, notify);
+        localStorage.setItem('state', JSON.stringify(state));
+        window.open(`/reports/print/${activeReport}?${queryString}`, '_blank');
 
         return Promise.resolve();
     };
