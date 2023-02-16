@@ -8,7 +8,7 @@ import { gettext } from 'utils';
 import {REPORTS} from '../actions';
 
 
-class ComapnyNewsApiUsage extends React.Component {
+class CompanyNewsApiUsage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -58,12 +58,12 @@ class ComapnyNewsApiUsage extends React.Component {
         const {results, print, reportParams, resultHeaders} = this.props;
         let list = [];
         Object.keys(results).forEach((company) => {
-            const rowColums = [
+            const rowColumns = [
                 (<td key={'name-' + company}>{company}</td>),
                 ...resultHeaders.map((headerName, index) => 
                     (<td key={index}>{get(results[company], headerName, 0)}</td>))
             ];
-            list.push((<tr key={company}>{rowColums}</tr>));
+            list.push((<tr key={company}>{rowColumns}</tr>));
         });
 
         if (!list.length) {
@@ -100,7 +100,7 @@ class ComapnyNewsApiUsage extends React.Component {
     }
 }
 
-ComapnyNewsApiUsage.propTypes = {
+CompanyNewsApiUsage.propTypes = {
     results: PropTypes.array,
     print: PropTypes.bool,
     reportParams: PropTypes.object,
@@ -112,4 +112,4 @@ ComapnyNewsApiUsage.propTypes = {
 
 };
 
-export default ComapnyNewsApiUsage;
+export default CompanyNewsApiUsage;

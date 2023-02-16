@@ -14,7 +14,7 @@ class EditProduct extends React.Component {
     constructor(props) {
         super(props);
         this.handleTabClick = this.handleTabClick.bind(this);
-        this.getPoductTestButton = this.getPoductTestButton.bind(this);
+        this.getProductTestButton = this.getProductTestButton.bind(this);
         this.getQueryString = this.getQueryString.bind(this);
 
         this.state = {
@@ -39,7 +39,7 @@ class EditProduct extends React.Component {
         }
     }
 
-    getPoductTestButton(product) {
+    getProductTestButton(product) {
         let q;
 
         if (product.product_type === 'agenda') {
@@ -166,7 +166,7 @@ class EditProduct extends React.Component {
 
                                 </div>
                                 <div className='list-item__preview-footer'>
-                                    {this.getPoductTestButton(this.props.product)}
+                                    {this.getProductTestButton(this.props.product)}
                                     <input
                                         type='button'
                                         className='btn btn-outline-primary'

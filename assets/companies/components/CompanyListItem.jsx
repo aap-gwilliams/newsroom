@@ -13,7 +13,7 @@ function CompanyListItem({company, type, isActive, onClick, showSubscriberId}) {
             <td className="type">{type ? gettext(type.name) : ''}</td>
             {showSubscriberId && <td>{company.sd_subscriber_id}</td>}
             <td>{company.account_manager}</td>
-            <td className={isInPast(company.expiry_date) ? 'text-danger' : null}>
+            <td className={isInPast(company.expiry_date) && company.is_enabled ? 'text-danger' : null}>
                 {(company.is_enabled ? gettext('Enabled') : gettext('Disabled'))}
             </td>
             <td>{company.contact_name}</td>

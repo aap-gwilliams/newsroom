@@ -1,59 +1,107 @@
 import React, {Fragment} from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import { get } from 'lodash';
-import DropdownFilter from '../../components/DropdownFilter';
+import { sortBy, cloneDeep, get } from 'lodash';
 import ReportsTable from './ReportsTable';
-import {toggleFilterAndQuery, runReport} from '../actions';
-
+import {toggleFilterAndQuery, runReport, REPORTS, fetchAggregations} from '../actions';
 import { gettext } from 'utils';
+import MultiSelectDropdown from "../../components/MultiSelectDropdown";
 
 class ProductCompanies extends React.Component {
-    constructor(props, context) {
-        super(props, context);
+    constructor(props) {
+        super(props);
 
-        this.products = [...this.props.products.map((p) => ({...p, 'label': p.name}))];
-        this.state = { product: this.props.products[0] };
+        this.products = sortBy([...this.props.products.map((p) => ({
+            ...p,
+            'label': p.name}))
+            .concat(...this.props.monitoring.map((m) => ({
+                ...m,
+                'label': m.name,
+                'product_type': 'monitoring'
+            })))], ['product_type']);
+        this.props.reportParams.section = null;
+        this.props.reportParams.product = null;
+        this.onChangeSection = this.onChangeSection.bind(this);
 
-        this.filters = [{
-            label: gettext('All Products'),
-            field: 'product'
-        }];
-        this.getDropdownItems = this.getDropdownItems.bind(this);
-        this.results = [];
+        this.state = {
+            filters: ['section', 'product'],
+            results: [],
+            section: {
+                field: 'section',
+                label: gettext('Sections'),
+                options: [],
+                onChange: this.onChangeSection,
+                showAllButton: true,
+                multi: false,
+                default: null,
+            },
+            product: {
+                field: 'product',
+                label: gettext('Products'),
+                options: [],
+                onChange: this.props.toggleFilterAndQuery,
+                showAllButton: true,
+                multi: false,
+                default: null,
+            },
+        };
     }
 
-    getDropdownItems(filter) {
-        const { toggleFilterAndQuery } = this.props;
-        let getName = (text) => (text);
-        let itemsArray = [];
-        switch (filter.field) {
-        case 'product':
-            itemsArray = this.products;
-            break;
-        }
-
-        return itemsArray.map((item, i) => (<button
-            key={i}
-            className='dropdown-item'
-            onClick={() => toggleFilterAndQuery(filter.field, item.name)}
-        >{getName(item.name)}</button>));
+    componentWillMount() {
+        this.props.fetchAggregations(REPORTS['product-companies']);
+        // Run report on initial loading with default filters
+        this.props.runReport();
     }
 
-    getFilterLabel(filter, activeFilter) {
-        if (activeFilter[filter.field]) {
-            return activeFilter[filter.field];
-        } else {
-            return filter.label;
+    componentWillReceiveProps(nextProps) {
+        if (this.props.aggregations !== nextProps.aggregations) {
+            this.updateAggregations(nextProps);
         }
+    }
+
+    onChangeSection(field, value) {
+        this.props.reportParams.product = null;
+        this.props.toggleFilterAndQuery('section', value);
+        this.props.fetchAggregations(REPORTS['product-companies']);
+    }
+
+    updateAggregations(props) {
+        const section = cloneDeep(this.state.section);
+        const product = cloneDeep(this.state.product);
+
+        if (!props.reportParams.section) {
+            section.options = props.sections
+                .map((section) => ({
+                    label: section.name,
+                    value: section.name,
+                }));
+        }
+        product.options = this.products
+            .filter((product) => props.aggregations.products.includes(product._id))
+            .map((product) => ({
+                label: props.reportParams.section ? product.name : product.name.concat(' - ', this.getProductSectionName(product.product_type)),
+                value: props.reportParams.section ? product.name : product.name.concat('|', this.getProductSectionName(product.product_type)),
+            }));
+
+        this.setState({
+            section,
+            product,
+        });
+    }
+
+    getProductSectionName(productType) {
+        const { sections } = this.props;
+        let section = sections.find(s => s._id === productType);
+        return section ? section.name : productType;
     }
 
     render() {
-        const {results, print, reportParams, toggleFilterAndQuery} = this.props;
+        const {results, print, reportParams} = this.props;
+        const {filters} = this.state;
         const headers = [gettext('Product'), gettext('Active Companies'), gettext('Disabled Companies')];
         const list = get(results, 'length', 0) > 0 ? results.map((item) =>
             <tr key={item._id}>
-                <td>{item.product}</td>
+                <td>{item.product}{!reportParams.section && <span className="font-italic"> {this.getProductSectionName(item.product_type)}</span>}</td>
                 <td>{item.enabled_companies.map((company) => (
                     <Fragment key={company}>
                         {company}<br />
@@ -71,17 +119,21 @@ class ProductCompanies extends React.Component {
             <td></td>
         </tr>)]);
 
-        let filterNodes = this.filters.map((filter) => (
-            <DropdownFilter
-                key={filter.label}
-                filter={filter}
-                getDropdownItems={this.getDropdownItems}
-                activeFilter={reportParams}
-                getFilterLabel={this.getFilterLabel}
-                toggleFilter={toggleFilterAndQuery}
-            />
-        ));
-        const filterSection = (<div key='report_filters' className="align-items-center d-flex flex-sm-nowrap flex-wrap m-0 px-3 wire-column__main-header-agenda">{filterNodes}</div>);
+        const filterSection = (<Fragment>
+            <div key='report_filters' className="align-items-center d-flex flex-sm-nowrap flex-wrap m-0 px-3 wire-column__main-header-agenda">
+                {filters.map((filterName) => {
+                    const filter = this.state[filterName];
+
+                    return (
+                        <MultiSelectDropdown
+                            key={filterName}
+                            {...filter}
+                            values={reportParams[filter.field] || filter.default}
+                        />
+                    );
+                })}
+            </div>
+        </Fragment>);
 
         return [filterSection,
             (<ReportsTable key='report_table' headers={headers} rows={list} print={print} />)];
@@ -92,19 +144,26 @@ class ProductCompanies extends React.Component {
 ProductCompanies.propTypes = {
     results: PropTypes.array,
     print: PropTypes.bool,
+    sections: PropTypes.array,
     products: PropTypes.array,
+    monitoring: PropTypes.array,
     reportParams: PropTypes.object,
     toggleFilterAndQuery: PropTypes.func,
     runReport: PropTypes.func,
     isLoading: PropTypes.bool,
+    fetchAggregations: PropTypes.func,
+    aggregations: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
+    sections: state.sections,
     products: state.products,
+    monitoring: state.monitoring,
     reportParams: state.reportParams,
     isLoading: state.isLoading,
+    aggregations: state.reportAggregations,
 });
 
-const mapDispatchToProps = { toggleFilterAndQuery, runReport};
+const mapDispatchToProps = { toggleFilterAndQuery, runReport, fetchAggregations};
 
 export default connect(mapStateToProps, mapDispatchToProps)(ProductCompanies);

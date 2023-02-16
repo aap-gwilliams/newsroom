@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {get, keyBy, cloneDeep} from 'lodash';
 
 import {gettext, formatTime} from '../../utils';
-import {fetchReport, REPORTS, runReport, toggleFilter, fetchAggregations} from '../actions';
+import {fetchReport, REPORTS, runReport, toggleFilter, toggleFilterAndQuery, fetchAggregations} from '../actions';
 
 import CalendarButton from '../../components/CalendarButton';
 import MultiSelectDropdown from '../../components/MultiSelectDropdown';
@@ -24,7 +24,7 @@ class ContentActivity extends React.Component {
             results: [],
             section: {
                 field: 'section',
-                label: gettext('Section'),
+                label: gettext('Sections'),
                 options: this.props.sections
                     .filter((section) => section.group === 'wire' || (section.group === 'api' && this.props.apiEnabled)
                     || section.group === 'monitoring')
@@ -33,9 +33,9 @@ class ContentActivity extends React.Component {
                         value: section.name,
                     })),
                 onChange: this.onChangeSection,
-                showAllButton: false,
+                showAllButton: true,
                 multi: false,
-                default: this.props.sections[0].name,
+                default: null,
             },
             genre: {
                 field: 'genre',
@@ -50,7 +50,7 @@ class ContentActivity extends React.Component {
                 field: 'company',
                 label: gettext('Companies'),
                 options: [],
-                onChange: this.props.toggleFilter,
+                onChange: this.props.toggleFilterAndQuery,
                 showAllButton: true,
                 multi: false,
                 default: null,
@@ -80,13 +80,10 @@ class ContentActivity extends React.Component {
     componentWillMount() {
         // Fetch the genre & company aggregations to populate those dropdowns
         this.props.fetchAggregations(REPORTS['content-activity']);
+        this.props.runReport();
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.props.results !== nextProps.results) {
-            this.updateResults(nextProps);
-        }
-
         if (this.props.aggregations !== nextProps.aggregations) {
             this.updateAggregations(nextProps);
         }
@@ -186,16 +183,16 @@ class ContentActivity extends React.Component {
                 }
             })
         );
-        this.setState({results});
+        return results;
     }
 
     onDateChange(value) {
-        this.props.toggleFilter('date_from', value);
+        this.props.toggleFilterAndQuery('date_from', value);
         this.props.fetchAggregations(REPORTS['content-activity']);
     }
 
     onChangeSection(field, value) {
-        this.props.toggleFilter('section', value);
+        this.props.toggleFilterAndQuery('section', value);
         this.props.fetchAggregations(REPORTS['content-activity']);
     }
 
@@ -208,7 +205,7 @@ class ContentActivity extends React.Component {
     }
 
     renderList() {
-        const {results} = this.state;
+        const results = this.updateResults(this.props);
         const actions = this.getFilteredActions();
 
         if (get(results, 'length', 0) > 0) {
@@ -285,12 +282,12 @@ class ContentActivity extends React.Component {
                         );
                     })}
 
-                    <button
+                    {/*<button
                         key='content_activity_export'
                         className="btn btn-outline-secondary ml-auto mr-3"
                         type="button"
                         onClick={this.exportToCSV}
-                    >{gettext('Export to CSV')}</button>
+                    >{gettext('Export to CSV')}</button>*/}
                 </div>
                 <ReportsTable
                     key='report_table'
@@ -310,6 +307,7 @@ ContentActivity.propTypes = {
     companies: PropTypes.array,
     runReport: PropTypes.func,
     toggleFilter: PropTypes.func,
+    toggleFilterAndQuery: PropTypes.func,
     isLoading: PropTypes.bool,
     fetchReport: PropTypes.func,
     reportParams: PropTypes.object,
@@ -329,6 +327,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = {
     toggleFilter,
+    toggleFilterAndQuery,
     fetchReport,
     runReport,
     fetchAggregations,

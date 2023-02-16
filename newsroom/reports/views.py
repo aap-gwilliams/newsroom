@@ -57,10 +57,13 @@ def export_reports(report):
     if not func:
         abort(400, gettext('Unknown report {}'.format(report)))
 
-    rows = func()
+    results = func()
+    headers = results.get('headers', [])
+    rows = results.get('results', [])
     data = StringIO()
-    writer = csv.writer(data, dialect='excel')
+    writer = csv.DictWriter(data, headers, '', 'ignore', dialect='excel')
 
+    writer.writeheader()
     for row in rows:
         writer.writerow(row)
 
@@ -75,6 +78,6 @@ def export_reports(report):
 
     response.content_length = len(csv_file)
     response.headers['Content-Type'] = 'text/csv'
-    response.headers['Content-Disposition'] = 'attachment; filename="report-export.csv"'
+    response.headers['Content-Disposition'] = 'attachment; filename="{}.csv"'.format(report)
 
     return response

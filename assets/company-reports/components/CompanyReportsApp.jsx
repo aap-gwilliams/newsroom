@@ -5,8 +5,9 @@ import {
     setActiveReport,
     runReport,
     REPORTS_NAMES,
+    fetchReport,
     printReport,
-    toggleFilterAndQuery,
+    toggleFilterAndQuery, REPORTS,
 } from '../actions';
 import { gettext } from 'utils';
 import { panels } from '../utils';
@@ -30,11 +31,16 @@ class CompanyReportsApp extends React.Component {
         super(props, context);
 
         this.getPanel = this.getPanel.bind(this);
+        this.exportToCSV = this.exportToCSV.bind(this);
     }
 
     getPanel() {
         const Panel = panels[this.props.activeReport];
         return Panel && this.props.results && <Panel key="panel" {...this.props}/>;
+    }
+
+    exportToCSV() {
+        return this.props.fetchReport(REPORTS[this.props.activeReport], false, true);
     }
 
     render() {
@@ -68,6 +74,12 @@ class CompanyReportsApp extends React.Component {
                         {this.props.activeReport && <button
                             className='btn btn-outline-secondary ml-2'
                             type='button'
+                            onClick={this.exportToCSV}>
+                            {gettext('Export to CSV')}
+                        </button>}
+                        {this.props.activeReport && <button
+                            className='btn btn-outline-secondary ml-2'
+                            type='button'
                             onClick={this.props.printReport} >
                             {gettext('Print report')}
                         </button>}
@@ -86,6 +98,7 @@ CompanyReportsApp.propTypes = {
     setActiveReport: PropTypes.func,
     runReport: PropTypes.func,
     companies: PropTypes.array,
+    fetchReport: PropTypes.func,
     printReport: PropTypes.func,
     isLoading: PropTypes.bool,
     apiEnabled: PropTypes.bool,
@@ -106,6 +119,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = {
     setActiveReport,
     runReport,
+    fetchReport,
     printReport,
     toggleFilterAndQuery,
 };

@@ -53,7 +53,23 @@ function getReportQueryString(currentState, next, exportReport, notify) {
         }
 
         if (params.product) {
-            params.product = get(getItemFromArray(params.product, currentState.products, 'name'), '_id');
+            let product_split = params.product.split('|');
+            let product = product_split[0];
+            let section = params.section ? params.section : get(getItemFromArray(product_split[1], currentState.sections, 'name'), '_id');
+            let products = currentState.products.concat(currentState.monitoring.map((m) => ({...m, product_type: 'monitoring'})));
+            params.product = get(getItemFromArray(product, section ? products.filter((p) => p.product_type === section) : products, 'name'), '_id');
+        }
+
+        if (params.user) {
+            let user_split = params.user.split('|');
+            let user = user_split[0];
+            let company = params.company ? params.company : get(getItemFromArray(user_split[1], currentState.companies, 'name'), '_id');
+            let users = currentState.users.map((u) => ({...u, name: u.first_name.concat(' ', u.last_name)}));
+            params.user = get(getItemFromArray(user, company ? users.filter((u) => u.company === company) : users, 'name'), '_id');
+        }
+
+        if (!params.showQueries) {
+            delete params.showQueries;
         }
 
         if (exportReport) {
@@ -73,6 +89,8 @@ export const INIT_DATA = 'INIT_DATA';
 export function initData(data) {
     return function (dispatch) {
         dispatch(fetchProducts());
+        dispatch(fetchMonitoring());
+        dispatch(fetchUsers());
         dispatch({type: INIT_DATA, data});
     };
 }
@@ -110,6 +128,16 @@ export function isLoading(data = false) {
 export const GET_PRODUCTS = 'GET_PRODUCTS';
 export function getProducts(data) {
     return {type: GET_PRODUCTS, data};
+}
+
+export const GET_MONITORING = 'GET_MONITORING';
+export function getMonitoring(data) {
+    return {type: GET_MONITORING, data};
+}
+
+export const GET_USERS = 'GET_USERS';
+export function getUsers(data) {
+    return {type: GET_USERS, data};
 }
 
 export function runReport() {
@@ -196,13 +224,9 @@ export function printReport() {
     return function (dispatch, getState) {
         const state = getState();
         const activeReport = state.activeReport;
-
-        if (activeReport === REPORTS_NAMES.SUBSCRIBER_ACTIVITY) {
-            const queryString = getReportQueryString(state, false, false, notify);
-            window.open(`/reports/print/${activeReport}?${queryString}`, '_blank');
-        } else {
-            window.open(`/reports/print/${activeReport}`, '_blank');
-        }
+        const queryString = getReportQueryString(state, false, false, notify);
+        localStorage.setItem('state', JSON.stringify(state));
+        window.open(`/reports/print/${activeReport}?${queryString}`, '_blank');
 
         return Promise.resolve();
     };
@@ -217,6 +241,26 @@ export function fetchProducts() {
         return server.get('/products/search')
             .then((data) => {
                 dispatch(getProducts(data));
+            })
+            .catch((error) => errorHandler(error, dispatch, setError));
+    };
+}
+
+export function fetchMonitoring() {
+    return function (dispatch) {
+        return server.get('/monitoring/all')
+            .then((data) => {
+                dispatch(getMonitoring(data));
+            })
+            .catch((error) => errorHandler(error, dispatch, setError));
+    };
+}
+
+export function fetchUsers() {
+    return function (dispatch) {
+        return server.get('/users/search')
+            .then((data) => {
+                dispatch(getUsers(data));
             })
             .catch((error) => errorHandler(error, dispatch, setError));
     };
